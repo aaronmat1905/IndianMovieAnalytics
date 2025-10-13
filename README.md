@@ -54,5 +54,5 @@ uvicorn main:app --reload
 
 ___
 # Team: 
-1. **Aaron Thomas Mathew**: (https://github.com/aaronmat1905)
-2. **Aashlesh Lokesh**: (https://github.com/placeholder)
+1. **Aaron Thomas Mathew**[https://github.com/aaronmat1905]
+2. **Aashlesh Lokesh**[https://github.com/aashlesh-lokesh]
