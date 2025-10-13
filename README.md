@@ -35,7 +35,7 @@ A backend system for managing Indian cinema data, including movies, producers, g
 
 1. Clone the repository:  
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/aaronmat1905/IndianMovieAnalytics
 cd indian-cinema-dbms-backend
 ````
 
@@ -54,5 +54,5 @@ uvicorn main:app --reload
 
 ___
 # Team: 
-1. **Aaron Thomas Mathew**[https://github.com/aaronmat1905]
-2. **Aashlesh Lokesh**[https://github.com/aashlesh-lokesh]
+1. (**Aaron Thomas Mathew**)[https://github.com/aaronmat1905]
+2. (**Aashlesh Lokesh**)[https://github.com/aashlesh-lokesh]
