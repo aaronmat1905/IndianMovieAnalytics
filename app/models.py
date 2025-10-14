@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, condecimal
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import date, datetime
 from enum import Enum
@@ -42,7 +42,7 @@ class CrewRole(str, Enum):
 # User models
 class UserBase(BaseModel):
     username: str = Field(..., min_length=1, max_length=50)
-    email: str = Field(..., pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+    email: str = Field(..., regex=r"^[\w\.-]+@[\w\.-]+\.\w+$")
     role: UserRole
 
 class UserCreate(UserBase):
@@ -60,8 +60,8 @@ class User(UserBase):
 class ProducerBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     company: Optional[str] = Field(None, max_length=150)
-    phone: Optional[str] = Field(None, pattern=r"^[0-9+\-\s()]*$")
-    email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+    phone: Optional[str] = Field(None, regex=r"^[0-9+\-\s()]*$")
+    email: Optional[str] = Field(None, regex=r"^[\w\.-]+@[\w\.-]+\.\w+$")
     start_date: date
     region: Optional[str] = Field(None, max_length=50)
 
@@ -91,9 +91,6 @@ class Language(LanguageBase):
 class GenreBase(BaseModel):
     genre_name: str = Field(..., min_length=1, max_length=50)
     description: Optional[str] = None
-
-class GenreCreate(GenreBase):
-    pass
 
 class Genre(GenreBase):
     genre_id: int
@@ -165,7 +162,7 @@ class ActorBase(BaseModel):
     date_of_birth: Optional[date] = None
     nationality: Optional[str] = Field(None, max_length=50)
     popularity_score: Optional[float] = Field(None, ge=0, le=10)
-    email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+    email: Optional[str] = Field(None, regex=r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 class Actor(ActorBase):
     actor_id: int
@@ -196,7 +193,7 @@ class ProductionCrewBase(BaseModel):
     role: CrewRole
     specialty: Optional[str] = Field(None, max_length=150)
     experience_years: Optional[int] = Field(None, ge=0)
-    email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+    email: Optional[str] = Field(None, regex=r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 class ProductionCrew(ProductionCrewBase):
     crew_id: int

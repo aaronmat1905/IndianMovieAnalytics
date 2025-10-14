@@ -1,55 +1,46 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config import get_settings
 import logging
 
-from app.routes import movies, producers, genres, box_office, analytics
+# Import routers
+from .routes import movies, producers, genres, box_office
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
-
+# Create FastAPI app
 app = FastAPI(
-    title="Movie Database API",
-    description="Backend API for Movie Database Management System",
+    title="Indian Cinema DBMS Backend",
+    description="A backend system for managing Indian cinema data with AI-driven analytics",
     version="1.0.0"
 )
 
-# CORS middleware
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(movies.router, prefix="/api/movies", tags=["Movies"])
-app.include_router(producers.router, prefix="/api/producers", tags=["Producers"])
-app.include_router(genres.router, prefix="/api/genres", tags=["Genres"])
-app.include_router(box_office.router, prefix="/api/box-office", tags=["Box Office"])
-app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(movies.router, prefix="/api", tags=["movies"])
+app.include_router(producers.router, prefix="/api", tags=["producers"])
+app.include_router(genres.router, prefix="/api", tags=["genres"])
+app.include_router(box_office.router, prefix="/api", tags=["box-office"])
 
 @app.get("/")
-def root():
-    return {
-        "message": "Movie Database API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+async def root():
+    """Root endpoint"""
+    return {"message": "Welcome to Indian Cinema DBMS Backend"}
 
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "Indian Cinema DBMS Backend"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host=settings.APP_HOST,
-        port=settings.APP_PORT,
-        reload=settings.DEBUG
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)

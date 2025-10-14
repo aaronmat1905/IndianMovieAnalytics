@@ -1,57 +1,111 @@
 from fastapi import APIRouter, HTTPException
-from typing import List
+from typing import List, Optional
+from ..models.database_models import Genre, GenreCreate
 from database.connection import execute_query
 
 router = APIRouter()
 
-@router.get("/")
-def get_all_genres():
-    """Get all genres"""
+@router.get("/genres", response_model=List[Genre])
+async def get_genres(
+    skip: int = 0,
+    limit: int = 100,
+    genre_name: Optional[str] = None
+):
+    """Get all genres with optional filtering"""
+    query = """
+    SELECT g.genre_id, g.genre_name, g.description, g.created_at
+    FROM GENRES g
+    WHERE 1=1
+    """
+    params = []
+
+    if genre_name:
+        query += " AND g.genre_name LIKE %s"
+        params.append(f"%{genre_name}%")
+
+    query += " ORDER BY g.created_at DESC LIMIT %s OFFSET %s"
+    params.extend([limit, skip])
+
     try:
-        query = "SELECT * FROM GENRES ORDER BY genre_name"
-        return execute_query(query)
+        genres = execute_query(query, tuple(params))
+        return genres
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{genre_id}")
-def get_genre(genre_id: int):
+@router.get("/genres/{genre_id}", response_model=Genre)
+async def get_genre(genre_id: int):
     """Get a specific genre by ID"""
+    query = """
+    SELECT g.genre_id, g.genre_name, g.description, g.created_at
+    FROM GENRES g
+    WHERE g.genre_id = %s
+    """
+
     try:
-        query = "SELECT * FROM GENRES WHERE genre_id = %s"
-        results = execute_query(query, (genre_id,))
-        if not results:
+        genre = execute_query(query, (genre_id,))
+        if not genre:
             raise HTTPException(status_code=404, detail="Genre not found")
-        return results[0]
+        return genre[0]
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{genre_id}/movies")
-def get_genre_movies(genre_id: int):
-    """Get all movies of a specific genre"""
+@router.post("/genres", response_model=dict)
+async def create_genre(genre: GenreCreate):
+    """Create a new genre"""
+    query = """
+    INSERT INTO GENRES (genre_name, description)
+    VALUES (%s, %s)
+    """
+
     try:
-        query = """
-            SELECT m.*, b.total_collection,
-                   GROUP_CONCAT(DISTINCT g2.genre_name) as all_genres
-            FROM MOVIES m
-            JOIN MOVIE_GENRES mg ON m.movie_id = mg.movie_id
-            LEFT JOIN BOX_OFFICE b ON m.movie_id = b.movie_id
-            LEFT JOIN MOVIE_GENRES mg2 ON m.movie_id = mg2.movie_id
-            LEFT JOIN GENRES g2 ON mg2.genre_id = g2.genre_id
-            WHERE mg.genre_id = %s
-            GROUP BY m.movie_id
-            ORDER BY b.total_collection DESC
-        """
-        return execute_query(query, (genre_id,))
+        result = execute_query(query, (genre.genre_name, genre.description), fetch=False)
+        return {"genre_id": result["last_id"], "message": "Genre created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/statistics/all")
-def get_genre_statistics():
-    """Get statistics for all genres"""
+@router.put("/genres/{genre_id}", response_model=dict)
+async def update_genre(genre_id: int, genre: GenreCreate):
+    """Update an existing genre"""
+    # Check if genre exists
+    existing_genre = execute_query("SELECT genre_id FROM GENRES WHERE genre_id = %s", (genre_id,))
+    if not existing_genre:
+        raise HTTPException(status_code=404, detail="Genre not found")
+
+    update_fields = []
+    params = []
+
+    # Build dynamic update query
+    if genre.genre_name is not None:
+        update_fields.append("genre_name = %s")
+        params.append(genre.genre_name)
+    if genre.description is not None:
+        update_fields.append("description = %s")
+        params.append(genre.description)
+
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    params.append(genre_id)
+    query = f"UPDATE GENRES SET {', '.join(update_fields)} WHERE genre_id = %s"
+
     try:
-        query = "SELECT * FROM GenreStatistics ORDER BY total_collection DESC"
-        return execute_query(query)
+        execute_query(query, tuple(params), fetch=False)
+        return {"message": "Genre updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/genres/{genre_id}", response_model=dict)
+async def delete_genre(genre_id: int):
+    """Delete a genre"""
+    # Check if genre exists
+    existing_genre = execute_query("SELECT genre_id FROM GENRES WHERE genre_id = %s", (genre_id,))
+    if not existing_genre:
+        raise HTTPException(status_code=404, detail="Genre not found")
+
+    try:
+        execute_query("DELETE FROM GENRES WHERE genre_id = %s", (genre_id,), fetch=False)
+        return {"message": "Genre deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

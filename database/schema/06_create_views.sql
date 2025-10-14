@@ -1,52 +1,91 @@
--- View 1: Movie Summary View
-CREATE OR REPLACE VIEW MovieSummary AS
+
+-- ========================================================
+-- VIEWS FOR REPORTING & ANALYSIS
+-- ========================================================
+
+-- VIEW 1: Movie Summary with Performance Metrics
+CREATE VIEW vw_movie_summary AS
 SELECT 
     m.movie_id,
     m.title,
+    l.language_name,
+    p.name AS producer_name,
     m.release_date,
-    m.duration,
-    m.certification,
+    m.budget,
+    bo.total_collection,
+    bo.domestic_collection,
+    bo.intl_collection,
+    (bo.total_collection - m.budget) AS net_profit,
     m.imdb_rating,
-    p.name as producer,
-    p.company as production_house,
-    GROUP_CONCAT(DISTINCT g.genre_name ORDER BY g.genre_name) as genres,
-    b.total_collection,
-    GetRatingCategory(m.imdb_rating) as rating_category,
-    CalculateProfitPercentage(m.budget, b.total_collection) as profit_percentage
+    COUNT(DISTINCT mc.actor_id) AS actor_count,
+    fn_get_movie_status(m.movie_id) AS movie_status
 FROM MOVIES m
+LEFT JOIN LANGUAGES l ON m.language_id = l.language_id
 LEFT JOIN PRODUCERS p ON m.producer_id = p.producer_id
-LEFT JOIN BOX_OFFICE b ON m.movie_id = b.movie_id
-LEFT JOIN MOVIE_GENRES mg ON m.movie_id = mg.movie_id
-LEFT JOIN GENRES g ON mg.genre_id = g.genre_id
+LEFT JOIN BOX_OFFICE bo ON m.movie_id = bo.movie_id
+LEFT JOIN MOVIE_CAST mc ON m.movie_id = mc.movie_id
 GROUP BY m.movie_id;
 
--- View 2: High Performing Movies
-CREATE OR REPLACE VIEW HighPerformingMovies AS
-SELECT 
-    m.movie_id,
-    m.title,
-    m.imdb_rating,
-    b.total_collection,
-    (b.total_collection - m.budget) as profit,
-    p.name as producer_name
-FROM MOVIES m
-JOIN BOX_OFFICE b ON m.movie_id = b.movie_id
-JOIN PRODUCERS p ON m.producer_id = p.producer_id
-WHERE m.imdb_rating >= 8.0 
-  AND b.total_collection > m.budget * 2
-ORDER BY b.total_collection DESC;
 
--- View 3: Genre Statistics
-CREATE OR REPLACE VIEW GenreStatistics AS
+-- VIEW 2: Top Movies by Collection
+CREATE VIEW vw_top_movies_by_collection AS
 SELECT 
-    g.genre_name,
-    COUNT(DISTINCT m.movie_id) as movie_count,
-    AVG(m.imdb_rating) as avg_rating,
-    SUM(b.total_collection) as total_collection,
-    AVG(b.total_collection) as avg_collection_per_movie
-FROM GENRES g
-LEFT JOIN MOVIE_GENRES mg ON g.genre_id = mg.genre_id
-LEFT JOIN MOVIES m ON mg.movie_id = m.movie_id
-LEFT JOIN BOX_OFFICE b ON m.movie_id = b.movie_id
-GROUP BY g.genre_id, g.genre_name
-HAVING movie_count > 0;
+    m.title,
+    l.language_name,
+    m.release_date,
+    bo.total_collection,
+    bo.domestic_collection,
+    bo.intl_collection,
+    m.budget,
+    ROUND(((bo.total_collection - m.budget) / m.budget * 100), 2) AS profit_percentage,
+    m.imdb_rating
+FROM MOVIES m
+JOIN LANGUAGES l ON m.language_id = l.language_id
+JOIN BOX_OFFICE bo ON m.movie_id = bo.movie_id
+WHERE bo.total_collection IS NOT NULL
+ORDER BY bo.total_collection DESC;
+
+
+-- VIEW 3: Actor Filmography
+CREATE VIEW vw_actor_filmography AS
+SELECT 
+    a.actor_id,
+    a.name,
+    a.popularity_score,
+    m.title AS movie_name,
+    mc.role_name,
+    mc.role_type,
+    m.release_date,
+    l.language_name
+FROM ACTORS a
+JOIN MOVIE_CAST mc ON a.actor_id = mc.actor_id
+JOIN MOVIES m ON mc.movie_id = m.movie_id
+JOIN LANGUAGES l ON m.language_id = l.language_id
+ORDER BY a.actor_id, m.release_date DESC;
+
+
+-- VIEW 4: Production Crew Projects
+CREATE VIEW vw_production_crew_projects AS
+SELECT 
+    pc.crew_id,
+    pc.name,
+    pc.role,
+    pc.experience_years,
+    m.title AS movie_name,
+    m.release_date,
+    COUNT(DISTINCT mc.movie_id) AS total_projects
+FROM PRODUCTION_CREW pc
+LEFT JOIN MOVIE_CREW mc ON pc.crew_id = mc.crew_id
+LEFT JOIN MOVIES m ON mc.movie_id = m.movie_id
+GROUP BY pc.crew_id
+ORDER BY pc.crew_id;
+
+-- ========================================================
+-- Database Created Successfully!
+-- ========================================================
+-- Tables: 10 main tables + supporting audit/stat tables
+-- Procedures: 5 (with transactions, nested queries, joins)
+-- Functions: 3 (business logic calculations)
+-- Triggers: 5 (audit logging, validation, updates)
+-- Views: 4 (reporting and analysis)
+-- ========================================================
