@@ -21,37 +21,32 @@ class MovieService:
             LEFT JOIN PRODUCERS p ON m.producer_id = p.producer_id
             LEFT JOIN MOVIE_GENRES mg ON m.movie_id = mg.movie_id
             LEFT JOIN GENRES g ON mg.genre_id = g.genre_id
-            WHERE m.movie_id = %s
             GROUP BY m.movie_id
         """
         results = execute_query(query, (movie_id,))
         return results[0] if results else None
     
     def create_movie(self, movie: MovieCreate):
-        query = """
-            INSERT INTO MOVIES 
-            (title, release_date, language, duration, certification, 
-             budget, ott_rights_value, plot_summary, imdb_rating, producer_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        params = (
-            movie.title, movie.release_date, movie.language, movie.duration,
-            movie.certification, movie.budget, movie.ott_rights_value,
-            movie.plot_summary, movie.imdb_rating, movie.producer_id
-        )
-        result = execute_query(query, params, fetch=False)
-        
-        # Insert genres if provided
-        if movie.genre_ids:
-            movie_id = result["last_id"]
-            for genre_id in movie.genre_ids:
-                genre_query = "INSERT INTO MOVIE_GENRES (movie_id, genre_id) VALUES (%s, %s)"
-                execute_query(genre_query, (movie_id, genre_id), fetch=False)
-        
-        return {"message": "Movie created successfully", "movie_id": result["last_id"]}
+        # Use stored procedure for movie creation
+        try:
+            result = call_procedure("sp_add_movie", (
+                movie.title, movie.release_date, movie.language_id, movie.duration,
+                movie.certification, movie.budget, movie.ott_rights_value,
+                movie.plot_summary, movie.imdb_rating, movie.producer_id, 1  # 1 for created_by (admin)
+            ))
+            movie_id = result[0]['p_movie_id'] if result else None
+            
+            # Insert genres if provided
+            if movie.genre_ids:
+                for genre_id in movie.genre_ids:
+                    genre_query = "INSERT INTO MOVIE_GENRES (movie_id, genre_id) VALUES (%s, %s)"
+                    execute_query(genre_query, (movie_id, genre_id), fetch=False)
+            
+            return {"message": "Movie created successfully", "movie_id": movie_id}
+        except Exception as e:
+            raise Exception(f"Failed to create movie: {str(e)}")
     
     def update_movie(self, movie_id: int, movie: MovieUpdate):
-        # Build dynamic update query
         update_fields = []
         params = []
         
