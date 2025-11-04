@@ -7,20 +7,18 @@ echo    INDIAN CINEMA DBMS - DATABASE MANAGEMENT SYSTEM
 echo ============================================================
 echo.
 
-REM Clear any environment variables that might override .env file
+REM Clear environment variables to prevent .env override
 set DB_HOST=
 set DB_PORT=
 set DB_USER=
 set DB_PASSWORD=
 set DB_NAME=
 
-REM Check Python installation
+REM Check Python
 python --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] Python not found!
-    echo Please install Python 3.10+ from https://www.python.org/
-    echo.
-    pause
+if %errorlevel% neq 0 (
+    echo [ERROR] Python not found! Install Python 3.10+ from https://www.python.org/
+    timeout /t 10
     exit /b 1
 )
 
@@ -28,22 +26,20 @@ echo [OK] Python found
 python --version
 echo.
 
-REM Check if .env file exists
+REM Check .env file
 if not exist ".env" (
     echo [ERROR] .env file not found!
     echo.
-    echo Please create .env file with your MySQL credentials:
-    echo.
+    echo Create .env file with:
     echo DB_HOST=localhost
     echo DB_PORT=3306
     echo DB_USER=root
-    echo DB_PASSWORD=your_mysql_password_here
+    echo DB_PASSWORD=your_password
     echo DB_NAME=indianmovies
     echo APP_HOST=0.0.0.0
     echo APP_PORT=8001
-    echo DEBUG=True
     echo.
-    pause
+    timeout /t 10
     exit /b 1
 )
 
@@ -52,22 +48,14 @@ echo.
 
 REM Test database connection
 echo Testing database connection...
-python -c "import sys; sys.path.insert(0, '.'); from config import Settings; from database.connection import get_db_connection; conn = get_db_connection(); print('[OK] Database connection successful!'); conn.close()" 2>nul
-if errorlevel 1 (
-    echo.
+python -c "import sys; sys.path.insert(0, '.'); from database.connection import get_db_connection; get_db_connection().close()" >nul 2>&1
+if %errorlevel% neq 0 (
     echo [ERROR] Database connection failed!
+    echo - Make sure MySQL is running
+    echo - Check password in .env file
+    echo - Verify database 'indianmovies' exists
     echo.
-    echo Common issues:
-    echo   1. MySQL is not running
-    echo   2. Wrong password in .env file
-    echo   3. Database 'indianmovies' does not exist
-    echo.
-    echo To fix:
-    echo   - Start MySQL (check MySQL Workbench or Services)
-    echo   - Verify password in .env file
-    echo   - Create database if needed: CREATE DATABASE indianmovies;
-    echo.
-    pause
+    timeout /t 10
     exit /b 1
 )
 
@@ -75,69 +63,36 @@ echo [OK] Database connection successful!
 echo.
 
 echo ============================================================
-echo    STARTING APPLICATION SERVERS
+echo    STARTING SERVERS
 echo ============================================================
 echo.
 
-REM Start Backend Server on port 8001
-echo [1/2] Starting Backend API Server (Port 8001)...
-start "Backend API - http://localhost:8001" cmd /c "color 0B && title Backend Server && echo Indian Cinema DBMS - Backend Server && echo. && echo Starting backend on port 8001... && echo. && set DB_HOST= && set DB_PORT= && set DB_USER= && set DB_PASSWORD= && set DB_NAME= && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 && pause"
+REM Start Backend
+echo Starting Backend API (port 8001)...
+start "Backend API" cmd /k "color 0B && title Backend Server && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
+timeout /t 5 /nobreak >nul
 
-echo       Waiting for backend to start (8 seconds)...
-timeout /t 8 /nobreak >nul
-
-REM Test if backend is running
-curl -s http://localhost:8001/health >nul 2>&1
-if errorlevel 1 (
-    echo       [WARNING] Backend may not have started yet
-    echo       Check the Backend window for errors
-    timeout /t 3 /nobreak >nul
-) else (
-    echo       [OK] Backend is running!
-)
-
-echo.
-
-REM Start Frontend Server on port 3000
-echo [2/2] Starting Frontend Web Server (Port 3000)...
-start "Frontend UI - http://localhost:3000" cmd /c "color 0E && title Frontend Server && echo Indian Cinema DBMS - Frontend Server && echo. && echo Starting frontend on port 3000... && echo. && cd frontend && python -m http.server 3000 && pause"
-
-echo       Waiting for frontend to start (3 seconds)...
+REM Start Frontend
+echo Starting Frontend UI (port 3000)...
+start "Frontend UI" cmd /k "color 0E && title Frontend Server && cd frontend && python -m http.server 3000"
 timeout /t 3 /nobreak >nul
 
 echo.
 echo ============================================================
-echo    APPLICATION STARTED SUCCESSFULLY!
+echo    APPLICATION RUNNING
 echo ============================================================
 echo.
-echo Backend API:      http://localhost:8001
-echo API Docs:         http://localhost:8001/docs
-echo Health Check:     http://localhost:8001/health
+echo Backend API:   http://localhost:8001
+echo API Docs:      http://localhost:8001/docs
+echo Frontend UI:   http://localhost:3000
 echo.
-echo Frontend UI:      http://localhost:3000
-echo.
-echo Opening browser in 2 seconds...
+echo Opening browser...
 timeout /t 2 /nobreak >nul
-
-REM Open browser
 start http://localhost:3000
 
 echo.
-echo ============================================================
-echo    APPLICATION IS RUNNING
-echo ============================================================
+echo Application is running in separate windows.
+echo Close those windows to stop the servers.
 echo.
-echo Two server windows are now open:
-echo   [1] Backend Server - FastAPI on port 8001
-echo   [2] Frontend Server - HTTP Server on port 3000
-echo.
-echo To STOP the application:
-echo   - Close both server windows
-echo   - Or press Ctrl+C in each window
-echo.
-echo This launcher window can be closed now.
-echo The application will continue running in the other windows.
-echo.
-echo Enjoy using Indian Cinema DBMS!
-echo.
-pause
+echo Press any key to close this launcher window...
+pause >nul

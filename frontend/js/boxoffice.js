@@ -91,6 +91,7 @@ const BoxOffice = {
                                         <select class="form-select" id="box-status">
                                             <option value="pending">Pending</option>
                                             <option value="updated">Updated</option>
+                                            <option value="confirmed">Confirmed</option>
                                         </select>
                                     </div>
                                 </div>
