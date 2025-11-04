@@ -80,6 +80,9 @@ class LanguageBase(BaseModel):
     language_name: str = Field(..., min_length=1, max_length=50)
     description: Optional[str] = None
 
+class LanguageCreate(LanguageBase):
+    pass
+
 class Language(LanguageBase):
     language_id: int
     created_at: datetime
@@ -167,6 +170,9 @@ class ActorBase(BaseModel):
     popularity_score: Optional[float] = Field(None, ge=0, le=10)
     email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
+class ActorCreate(ActorBase):
+    pass
+
 class Actor(ActorBase):
     actor_id: int
     created_at: datetime
@@ -197,6 +203,9 @@ class ProductionCrewBase(BaseModel):
     specialty: Optional[str] = Field(None, max_length=150)
     experience_years: Optional[int] = Field(None, ge=0)
     email: Optional[str] = Field(None, pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+
+class ProductionCrewCreate(ProductionCrewBase):
+    pass
 
 class ProductionCrew(ProductionCrewBase):
     crew_id: int

@@ -15,7 +15,8 @@ connection_pool = pooling.MySQLConnectionPool(
     port=settings.DB_PORT,
     user=settings.DB_USER,
     password=settings.DB_PASSWORD,
-    database=settings.DB_NAME
+    database=settings.DB_NAME,
+    ssl_disabled=True
 )
 
 def get_db_connection():

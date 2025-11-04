@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 # Import routers
-from .routes import movies, producers, genres, box_office
+from .routes import movies, producers, genres, box_office, actors, crew, languages
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +30,9 @@ app.include_router(movies.router, prefix="/api", tags=["movies"])
 app.include_router(producers.router, prefix="/api", tags=["producers"])
 app.include_router(genres.router, prefix="/api", tags=["genres"])
 app.include_router(box_office.router, prefix="/api", tags=["box-office"])
+app.include_router(actors.router)
+app.include_router(crew.router)
+app.include_router(languages.router)
 
 @app.get("/")
 async def root():

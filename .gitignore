@@ -1,0 +1,90 @@
+# Environment Variables (contains sensitive data like passwords)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE - Claude Code
+.claude/
+
+# IDE - VSCode
+.vscode/
+
+# IDE - Others
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sql.backup
+*.db
+*.sqlite
+*.sqlite3
+
+# OS Files
+Thumbs.db
+.DS_Store
+desktop.ini
+nul
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Node modules
+node_modules/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Personal notes
+notes.txt
+TODO.txt
+scratch.py
