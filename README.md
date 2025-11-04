@@ -45,7 +45,22 @@ This full-stack DBMS application provides complete lifecycle management of India
 
 ## 🚀 Quick Start
 
-### **1. Database Setup**
+### **One-Step Launch (Windows)**
+
+Simply double-click **`START.bat`** to launch the entire application!
+
+The script will:
+- ✅ Verify Python installation
+- ✅ Check database connection
+- ✅ Start backend API server (port 8001)
+- ✅ Start frontend web server (port 3000)
+- ✅ Open your browser automatically
+
+**That's it!** The application will be running at http://localhost:3000
+
+### **Manual Setup (if needed)**
+
+#### **1. Database Setup**
 ```bash
 # Create database
 mysql -u root -p

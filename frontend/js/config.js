@@ -44,7 +44,7 @@ const ENUMS = {
     USER_ROLES: ['admin', 'producer', 'analyst', 'viewer'],
     ROLE_TYPES: ['Lead', 'Supporting', 'Cameo'],
     CREW_ROLES: ['Director', 'Cinematographer', 'Music Director', 'Editor', 'Producer', 'Writer', 'Choreographer', 'Other'],
-    COLLECTION_STATUS: ['pending', 'updated'],
+    COLLECTION_STATUS: ['pending', 'updated', 'confirmed'],
     CERTIFICATIONS: ['U', 'UA', 'A', 'S'],
     GENDERS: ['Male', 'Female', 'Other'],
 };

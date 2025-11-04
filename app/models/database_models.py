@@ -13,6 +13,7 @@ class UserRole(str, Enum):
 class MovieStatus(str, Enum):
     PENDING = "pending"
     UPDATED = "updated"
+    CONFIRMED = "confirmed"
 
 class GenreType(str, Enum):
     DRAMA = "Drama"
